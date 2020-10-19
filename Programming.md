@@ -39,3 +39,13 @@ align = minimum(
             maximum(sizeof(member[0]), sizeof(member[1]), sizeof(member[2]), ......)
         )
 ```
+
+## Python
+
+### 多进程、多线程
+
+因为 GIL 的关系，多线程其实是**伪**多线程，CPU 即使有多核也不能同时执行多个线程。多进程才能真正让 CPU 同时进行。
+
+多进程可用原生 `Multiprocessing` 库里的 `Pool` 类及其 `apply_async(...)` 函数。
+
+Windows 系统上基于 `Multiprocessing` 库的程序基本都没能正常运行，不知道原因，同样的代码在 Linux 系统可以正常工作。

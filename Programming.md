@@ -49,3 +49,52 @@ align = minimum(
 多进程可用原生 `Multiprocessing` 库里的 `Pool` 类及其 `apply_async(...)` 函数。
 
 Windows 系统上基于 `Multiprocessing` 库的程序基本都没能正常运行，不知道原因，同样的代码在 Linux 系统可以正常工作。
+
+## 按行读文本文件
+
+常用的做法是
+
+```Python
+with open(file) as f:
+    for line in f:
+        do_something(line)
+```
+
+最近在做一些统计数据集信息的工作的时候，打算用 `pandas.Dataframe` 来先存放读入的数据。于是打算先读取文件的第一行来分析数据集包含哪些属性，即 `pandas.Dataframe.columns` ，然后再重新读每一行并使用 `pandas.Dataframe.append()` 存下来。于是很自然的就有了以下做法
+
+```Python
+with open(file) as f:
+    for line in f:
+        analysis_columns(line)
+        break
+    for line in f:
+        xxx.append(line)
+```
+
+结果发现，我的 `Dataframe` 缺少了第一行数据。原因其实是因为我进行第一次 `for line in f` 的操作的时候，让 `f` 的迭代器往前走了一步，于是第二次就直接从第二行开始了。以下两种方法都可以解决这个问题
+
+```Python
+with open(file) as f:
+    data = f.readlines()
+    for line in data:
+        analysis_columns(line)
+        break
+    for line in data:
+        xxx.append(line)
+```
+
+或者重新 `open` 一次文件
+
+```Python
+with open(file) as f:
+    for line in f:
+        analysis_columns(line)
+        break
+
+with open(file) as f:
+    for line in f:
+        xxx.append(line)
+```
+
+
+

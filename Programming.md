@@ -50,7 +50,7 @@ align = minimum(
 
 Windows 系统上基于 `Multiprocessing` 库的程序基本都没能正常运行，不知道原因，同样的代码在 Linux 系统可以正常工作。
 
-## 按行读文本文件
+### 按行读文本文件
 
 常用的做法是
 
@@ -68,7 +68,7 @@ with open(file) as f:
         analysis_columns(line)
         break
     for line in f:
-        xxx.append(line)
+        xxx.append(json.loads(line))
 ```
 
 结果发现，我的 `Dataframe` 缺少了第一行数据。原因其实是因为我进行第一次 `for line in f` 的操作的时候，让 `f` 的迭代器往前走了一步，于是第二次就直接从第二行开始了。以下两种方法都可以解决这个问题
@@ -77,10 +77,10 @@ with open(file) as f:
 with open(file) as f:
     data = f.readlines()
     for line in data:
-        analysis_columns(line)
+        analysis_columns(json.loads(line))
         break
     for line in data:
-        xxx.append(line)
+        xxx.append(json.loads(line))
 ```
 
 或者重新 `open` 一次文件
@@ -93,8 +93,9 @@ with open(file) as f:
 
 with open(file) as f:
     for line in f:
-        xxx.append(line)
+        xxx.append(json.loads(line))
 ```
 
+### 大量数据存入`pandas.DataFrame`
 
-
+接上一节。我发现 3mil 量级的数据花了 6 小时只完成了 20%，觉得很奇怪因为之前直接用 Python 改这个数据集的格式（不牵扯到 `pandas.DataFrame` ）的时候也没那么久。于是我直接先把 list of `dict`s 转换成一个完整的 `dict` 然后直接整个转换成 `pandas.DataFrame` ，发现也很快。然后去查 StackOverflow 和 `pandas.DataFrame` 自己的文档，发现是我自己用得太少了，`pandas.DataFrame.append` 效率就是很低，以及 `pandas.DataFrame` 的初始化函数的参数是可以接受 list of `dict`s 的。直接让 `pandas.DataFrame` 帮我处理而不是用 `append` 效率就提高了。

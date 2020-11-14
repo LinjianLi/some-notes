@@ -35,3 +35,11 @@ nvidia-smi
 cat /proc/driver/nvidia/version
 ```
 
+Disk usage
+
+```
+du -sh dir # View directory size
+           # -h for human readable format (KB, MB, GB, etc.)
+           # -s for summary of the directory instead of show everything in the directory
+```
+

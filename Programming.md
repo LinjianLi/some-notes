@@ -112,3 +112,43 @@ with open(file) as f:
 ### 大量数据存入`pandas.DataFrame`
 
 接上一节。我发现 3mil 量级的数据花了 6 小时只完成了 20%，觉得很奇怪因为之前直接用 Python 改这个数据集的格式（不牵扯到 `pandas.DataFrame` ）的时候也没那么久。于是我直接先把 list of `dict`s 转换成一个完整的 `dict` 然后直接整个转换成 `pandas.DataFrame` ，发现也很快。然后去查 StackOverflow 和 `pandas.DataFrame` 自己的文档，发现是我自己用得太少了，`pandas.DataFrame.append` 效率就是很低，以及 `pandas.DataFrame` 的初始化函数的参数是可以接受 list of `dict`s 的。直接让 `pandas.DataFrame` 帮我处理而不是用 `append` 效率就提高了。
+
+### Print UnicodeEncodeError
+
+[python(三)：Python3—UnicodeEncodeError 'ascii' codec can't encode characters in position 0-1](https://blog.csdn.net/AckClinkz/article/details/78538462)
+
+[Python3.6 sys.stdout.encoding的输出为'ANSI_X3.4-1968'](https://blog.csdn.net/j___t/article/details/97705231)
+
+### Encoding
+
+我在 Ubuntu 18.04 上运行 Python 程序的时候遇到过源文件的编码问题，会出现类似以下的情况
+
+```shell
+SyntaxError: Non-ASCII character '\xe6' in file my_python_program.py on line 5, but no encoding declared; see http://python.org/dev/peps/pep-0263/ for details
+```
+
+```shell
+if not line.startswith('  File "<frozen importlib._bootstrap'))
+UnicodeDecodeError: 'ascii' codec can't decode byte 0xe5 in position 11: ordinal not in range(128)
+```
+
+这时需要在源代码的开头加上
+
+```shell
+# -*- coding: utf-8 -*-
+import sys
+reload(sys)
+sys.setdefaultencoding("utf-8")
+```
+
+### 正则表达式
+
+在参加大数据比赛的时候，我负责数据清洗的工作，但我在使用正则表达式去除特殊符号的时候，我发现数字全被去除了，而我本意没有要去除这些数字。原来是我在正则表达式中“不小心”使用了 character range 的表示方法。例子如下
+
+```python
+text = '+12-3ab+c_456d_ef'
+text = re.sub(r'[+-_]+', '', text)
+print(text)
+```
+
+我想去除加号、减号、下划线，但是会输出 `abcdef`。因为我写的 `[+-_]` 会被解析成类似 `[0-9]` 这种使用范围表示的字符。如果我把 `[+-_]` 替换成 `[a-_]`，运行就会报错 `bad character range a-_ at position 1`。

@@ -45,14 +45,33 @@ align = minimum(
 ### Logging
 
 ```python
+import time
 import logging
 
+logging.basicConfig(filename="./log-{}.log".format(time.strftime("%Y-%m-%d %H.%M.%S", time.gmtime())),
+                    format="%(asctime)s - %(levelname)s - %(name)s - %(message)s",
+                    datefmt="%Y-%m-%d %H:%M:%S",
+                    level=logging.INFO)
+
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
-file_handler = logging.StreamHandler()
-formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(name)s - %(message)s')
+```
+
+or make a custom logger
+
+```python
+import logging
+
+logger = logging.getLogger("any_name_you_like")
+logger.setLevel(logging.DEBUG)  # Or "logging.WARNING", or any level you like.
+formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(name)s - %(message)s",
+                                datefmt="%Y-%m-%d %H:%M:%S")
+file_handler = logging.FileHandler("any_file_you_like")
 file_handler.setFormatter(formatter)
 logger.addHandler(file_handler)
+# You can even output the log to the console screen.
+stream_handler = logging.StreamHandler()
+stream_handler.setFormatter(formatter)
+logger.addHandler(stream_handler)
 ```
 
 ### 多进程、多线程

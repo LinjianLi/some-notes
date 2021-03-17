@@ -37,9 +37,12 @@ cat /proc/driver/nvidia/version
 
 Disk usage
 
-```
+```shell
 du -sh dir # View directory size
            # -h for human readable format (KB, MB, GB, etc.)
            # -s for summary of the directory instead of show everything in the directory
-```
 
+du -sh dir | sort -h # Sort by the disk usage
+                     # -h of `sort` command means --human-numeric-sort,
+                     #     compare human readable numbers (e.g., 2K 1G)
+```

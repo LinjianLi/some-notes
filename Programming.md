@@ -45,16 +45,26 @@ align = minimum(
 ### Logging
 
 ```python
+import os
 import time
 import logging
 
 # The letter "T" is a delimiter suggested in ISO-8601.
-# The colon ":" is replaced by the period "." for the log file name.
-logging.basicConfig(filename="./log-{}.log".format(
-                        time.strftime("%Y-%m-%dT%H.%M.%S", time.gmtime())),
-                    format="%(asctime)s - %(levelname)s - %(name)s - %(message)s",
-                    datefmt="%Y-%m-%dT%H:%M:%S",
-                    level=logging.INFO)
+log_dir = os.path.join(os.getcwd(), "log")
+os.makedirs(log_dir, exist_ok=True)
+logging.basicConfig(
+    handlers=[
+        logging.FileHandler(
+            filename="./log/log-{}.log".format(
+                time.strftime("%Y-%m-%dT%H%M%S", time.gmtime())
+            ), 
+            encoding='utf-8'
+        )
+    ],
+    format="%(asctime)s - %(levelname)s - %(name)s - %(message)s",
+    datefmt="%Y-%m-%dT%H:%M:%S",
+    level=logging.INFO
+)
 
 logger = logging.getLogger(__name__)
 ```

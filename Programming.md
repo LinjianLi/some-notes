@@ -93,8 +93,6 @@ logger.addHandler(stream_handler)
 
 多进程可用原生 `Multiprocessing` 库里的 `Pool` 类及其 `apply_async(...)` 函数。
 
-Windows 系统上基于 `Multiprocessing` 库的程序基本都没能正常运行，不知道原因，同样的代码在 Linux 系统可以正常工作。
-
 #### 常用例子
 
 我最常用的情况就是对大量实验数据进行预处理。假如所有数据存在一个 `txt` 文件里，处理后的数据要存到另一个 `txt` 文件里。可以先把数据读入一个 `list` 中，再把数据分组，然后每组数据用一个进程处理，然后合并数据，最后写出数据到目标文件。
@@ -135,6 +133,54 @@ with open("output.multiprocess.txt", mode="w") as f_out:
     f_out.writelines(all_results)
 print("Finish.")
 ```
+
+#### 在 Windows 系统上使用 Multiprocessing
+
+之前的笔记里我写了一句
+
+> Windows 系统上基于 `Multiprocessing` 库的程序基本都没能正常运行，不知道原因，同样的代码在 Linux 系统可以正常工作。
+
+后来查到解决办法，就是要加上 `if __name__ == "__main__":` 语句，然后把处理逻辑部分放入这个 `if` 块里面。把处理逻辑放封装在一个 `main()` 函数里，然后再把 `main()` 函数的调用放到 `if __name__ == "__main__":` 块内。例子如下
+
+```Python
+import multiprocessing
+
+# Define the function to process the data.
+def data_processing(input_lines: list) -> list:
+    result_lines = []
+    # Do something to process the input_lines.
+    # Store the result into the result_lines.
+    return result_lines
+
+def main():
+    cpu_count = multiprocessing.cpu_count()
+    with multiprocessing.Pool(cpu_count) as p:
+        # Use `p.apply_async()` and the `data_processing()` function to process the data.
+        pass
+    print("Finish.")
+
+if __name__ == "__main__":
+    main()
+```
+
+有兴趣深入了解的话，可以看一下我找到的解决办法对应的网页。
+
+- [stackoverflow 页面 1](https://stackoverflow.com/questions/20222534/python-multiprocessing-on-windows-if-name-main)
+- [stackoverflow 页面 2](https://stackoverflow.com/questions/38236211/why-multiprocessing-process-behave-differently-on-windows-and-linux-for-global-o)
+
+在此我也简单摘录一些内容：
+
+> On Linux (and other Unix-like OSs), Python's multiprocessing module using fork() to create new child processes that efficiently inherit a copy of the parent process's memory state. That means the interpreter doesn't need to pickle the objects that are being passed as the Process's args since the child process will already have them available in their normal form.
+>
+> Windows doesn't have a fork() system call however, so the multiprocessing module needs to do a bit more work to make the child-spawning process work. The fork()-based implementation came first, and the non-forking Windows implementation came later.
+>
+> ......
+>
+> Since Windows has no fork, the multiprocessing module starts a new Python process and imports the calling module. If Process() gets called upon import, then this sets off an infinite succession of new processes (or until your machine runs out of resources).
+>
+> ......
+
+(此外要注意的是，如果还是要把处理后的数据写入一个 `txt` 文件中，在 Windows 系统上最后输出的文件大小可能和在 Linux 系统上输出的不一样（前者比后者大一点），然后用 `diff` 命令去比较得到的两个输出文件也存在大量不同点，但是肉眼看不出来。遇到这种情况，大概率是因为在 Windows 系统输出的换行符是 `CR LF` 即 `\r\n`，而 Linux 系统输出的换行符是 `LF` 即 `\n`，所以前者的每一行都多一个 `\r` 字符。)
 
 ### 按行读文本文件
 

@@ -95,6 +95,47 @@ logger.addHandler(stream_handler)
 
 Windows 系统上基于 `Multiprocessing` 库的程序基本都没能正常运行，不知道原因，同样的代码在 Linux 系统可以正常工作。
 
+#### 常用例子
+
+我最常用的情况就是对大量实验数据进行预处理。假如所有数据存在一个 `txt` 文件里，处理后的数据要存到另一个 `txt` 文件里。可以先把数据读入一个 `list` 中，再把数据分组，然后每组数据用一个进程处理，然后合并数据，最后写出数据到目标文件。
+
+```Python
+import multiprocessing
+
+# Define the function to process the data.
+def data_processing(input_lines: list) -> list:
+    result_lines = []
+    # Do something to process the input_lines.
+    # Store the result into the result_lines.
+    return result_lines
+
+cpu_count = multiprocessing.cpu_count()
+print("CPU count: {}".format(cpu_count))
+with open("input.txt", mode="r") as f_in:
+    lines = f_in.readlines()
+
+# Compute the group size for each process.
+group_size = len(lines) // cpu_count + 1
+grouped_lines = [lines[i*group_size:(i+1)*group_size] for i in range(cpu_count)]
+
+# Process the data use multiprocessing.
+results = []
+with multiprocessing.Pool(cpu_count) as p:
+    for group in grouped_lines:
+        result = p.apply_async(data_processing, [group])
+        results.append(result)
+    results_get = [result.get() for result in results]
+
+# Assemble all the results.
+all_results = []
+for result in results_get:
+    all_results.extend(result)
+all_results = [s + "\n" for s in all_results]
+with open("output.multiprocess.txt", mode="w") as f_out:
+    f_out.writelines(all_results)
+print("Finish.")
+```
+
 ### 按行读文本文件
 
 常用的做法是

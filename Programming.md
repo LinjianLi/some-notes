@@ -182,6 +182,26 @@ if __name__ == "__main__":
 
 (此外要注意的是，如果还是要把处理后的数据写入一个 `txt` 文件中，在 Windows 系统上最后输出的文件大小可能和在 Linux 系统上输出的不一样（前者比后者大一点），然后用 `diff` 命令去比较得到的两个输出文件也存在大量不同点，但是肉眼看不出来。遇到这种情况，大概率是因为在 Windows 系统输出的换行符是 `CR LF` 即 `\r\n`，而 Linux 系统输出的换行符是 `LF` 即 `\n`，所以前者的每一行都多一个 `\r` 字符。)
 
+##### 在 Windows 系统上的 Jupyter Notebook 环境里使用 Multiprocessing
+
+想在 Windows 系统上的 Jupyter Notebook 环境里使用 Multiprocessing，如果像前面把实际处理数据的函数定义在同一个代码文件里面的话，运行之后会发现函数永远不结束，系统监控也会发现 CPU 根本没有负载，意味着其实没有正常运行。看一下启动 Jupyter Notebook 时的 shell 的输出能看到 `AttributeError: Can't get attribute 'data_processing' on <module '__main__' (built-in)>`。
+
+解决办法：必须把实际处理数据的函数定义在一个单独的文件里，然后在 Jupyter Notebook 里面 `import` 对应的函数，然后再运行。详细内容参考[此 stackoverflow 页面](https://stackoverflow.com/questions/47313732/jupyter-notebook-never-finishes-processing-using-multiprocessing-python-3)。
+
+在此简单摘录一些内容：
+
+> It seems that the problem in Jupyter notebook as in different ide is the design feature. Therefore, we have to write the function (prime_factor) into a different file and import the module.
+>
+> ......
+>
+> It works using Pool but doesn't work using Process. What could be the reason?
+>
+> ......
+>
+> Mayby it is obviously, but for the next readers: If pool initializing function like prime_factor() in the question calls another functions they also must be putted in the same package together with prime_factor()
+>
+> ......
+
 ### 按行读文本文件
 
 常用的做法是

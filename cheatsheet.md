@@ -46,3 +46,21 @@ du -sh dir | sort -h # Sort by the disk usage
                      # -h of `sort` command means --human-numeric-sort,
                      #     compare human readable numbers (e.g., 2K 1G)
 ```
+
+## File Manipulation
+
+### Recursively delete all files of a specific extension in the current directory
+
+Reference site: [askubuntu](https://askubuntu.com/questions/377438/how-can-i-recursively-delete-all-files-of-a-specific-extension-in-the-current-di)
+
+```shell
+find . -name "*.bak" -type f -delete
+```
+
+But use it with precaution. Run first:
+
+```shell
+find . -name "*.bak" -type f
+```
+
+Also, make sure that -delete is the last argument in your command. If you put it before the -name *.bak argument, it will delete everything.

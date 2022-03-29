@@ -12,7 +12,7 @@ struct 第一个成员 (用 `member[0]` 表示) 的地址偏移量（offset）�
 
 ```pseudocode
 align = sizeof(member[x])
-candidate_set = {k | k * align > offset of the last byte of member[x - 1]}
+candidate_set = {k * align | k is non-negative integer, k * align > offset of the last byte of member[x - 1]}
 offset[x] = minimum(candidate_set)
 ```
 
@@ -20,16 +20,22 @@ offset[x] = minimum(candidate_set)
 
 ```pseudocode
 align = minimum(sizeof(member[x]), n)
-candidate_set = {k | k * align > offset of the last byte of member[x - 1]}
-offset[x] = minimum(candidate_set)
+candidate_set = ...
+offset[x] = ...
 ```
 
-以下是维基百科中计算 alignment 和 padding 的算法
+以下是[维基百科](https://en.wikipedia.org/wiki/Data_structure_alignment)中计算 alignment 和 padding 的算法
 
 ```pseudocode
 padding = (align - (offset mod align)) mod align
 aligned = offset + padding
 ```
+
+其中，`align` 是需要对齐的大小，`offset` 是假如不对齐的话本该放置的下一个地址，`padding` 是如果需要让下一个地址对齐应该从 `offset` 开始垫上多少个字节，`aligned` 就是对齐后该使用的下一个地址。
+
+举例分析：假设我们需要 4-byte 对齐。假如不对齐的时候下一个该放置的地址是 `0x59d`，即十进制的 `1437`。1437 不是 4 的整数倍，但 1437 + 3 = 1440 是 4 的整数倍。所以如果从 `1437` 处垫上 3 个字节，即把 `[1437, 1438, 1439]` 给占用，那么下一个可用地址就是 `1440`，即 `0x5a0`。
+
+那么 "3" 是如何算出来的？对于原本的 `offset`，先计算它比正常的 `align` 对齐的上一个地址超出多少，公式应该是 `offset mod align`，对应到前面的例子可得 `1437 mod 4 = 1`。所以需要垫上的字节数 `padding` 就是 `align` 值减去前面超出的数值，这样通过 `offset + padding` 算出的新地址就是 `align` 的整数倍了。因此就有了前面公式中的 `align - (offset mod align)`。对应前面例子可得 `padding = 4 - 1 = 3`。到这里似乎就可以结束了。但是有一个特殊情况没有考虑到，假如 `offset` 本来就是对齐的，那么 `offset mod align = 0`，然后 `padding = align - 0 = align`，这样算出来意思是还要在垫上 `align` 个字节，而实际上是不需要的，因为已经对齐了。所以这种情况实际上 `padding = 0`。因此如果补上 `padding = padding mod align`，就可以应对这种情况，当原始 `padding` 算出来小于 `align` 的时候，说明确实没对齐，`padding mod align` 的结果仍是 `padding`，就正常垫上 `padding`；当原始 `padding` 算出来等于 `align` 的时候，说明已经对齐，`padding mod align` 的结果等于 `align mod align = 0`，所以实际 `padding = 0`。
 
 除了成员在内部需要对齐，struct 自己的起始地址也要对齐
 
